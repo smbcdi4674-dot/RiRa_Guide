@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리라 영어학원 - 독서 가이드</title>
+    <style>
+        :root { 
+            --lira-navy: #282B81;   /* 로고 배경색 일치 */
+            --lira-orange: #F15A24; 
+            --bg: #F0F2F5; 
+        }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .app-container { background: #fff; width: 90%; max-width: 450px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 20px; }
+        
+        /* 헤더 배경색 수정 */
+        .header { background: var(--lira-navy); color: white; padding: 30px 20px; text-align: center; }
+        .logo-img { width: 220px; height: auto; display: block; margin: 0 auto; }
+        
+        .content { padding: 20px; }
+        .input-group { margin-top: 15px; }
+        label { display: block; font-size: 13px; color: var(--lira-navy); font-weight: bold; margin-bottom: 8px; }
+        input { width: 100%; padding: 16px; border: 2px solid #E0E0E0; border-radius: 15px; box-sizing: border-box; font-size: 16px; }
+        
+        .btn { width: 100%; padding: 18px; background: var(--lira-orange); color: white; border: none; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+        .info-tab { background: #E9EAF5; padding: 12px 20px; font-size: 13px; color: var(--lira-navy); display: flex; justify-content: space-between; font-weight: bold; }
+
+        /* 결과 창을 위로 배치 */
+        .result-container { min-height: 120px; margin-bottom: 15px; }
+        .result-title { font-size: 15px; color: var(--lira-navy); font-weight: bold; margin-bottom: 10px; }
+        .result-card { background: #F8F9FF; padding: 20px; border-radius: 20px; border: 1.5px solid #E9EAF5; border-left: 6px solid var(--lira-orange); line-height: 1.8; font-size: 15px; color: #333; }
+        
+        #search-page { display: none; }
+        .loading { text-align: center; color: var(--lira-navy); margin: 10px 0; display: none; font-weight: bold; }
+        .divider { border-top: 1px solid #EEE; margin: 25px 0; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div id="login-page">
+        <div class="header"><img src="https://i.ibb.co/qFXYZWLD/lira-logo.png" class="logo-img"></div>
+        <div class="content">
+            <div class="input-group"><label>Student Name</label><input type="text" id="studentName" placeholder="이름 입력"></div>
+            <div class="input-group"><label>Book Title</label><input type="text" id="bookTitle" placeholder="책 제목 입력"></div>
+            <button class="btn" onclick="startReading()">Welcome to Reading</button>
+        </div>
+    </div>
+
+    <div id="search-page">
+        <div class="info-tab"><span id="show-name"></span><span id="show-book"></span></div>
+        <div class="content">
+            <div class="result-container">
+                <div class="result-title">✨ 리라 답변</div>
+                <div id="loading" class="loading">리라가 분석 중... 🔍</div>
+                <div id="ai-response" class="result-card">단어를 아래에 입력해 주세요.</div>
+            </div>
+            <div class="divider"></div>
+            <div class="input-group">
+                <label>오늘의 궁금한 단어나 구문은?</label>
+                <input type="text" id="queryInput" placeholder="단어 입력 후 엔터" onkeypress="if(event.keyCode==13) askGPT()">
+            </div>
+            <button class="btn" onclick="askGPT()">리라에게 물어보기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz3EsfHpqAWtQipNPTYhcbRYeJXJ4Wak8qIeOvCGGaSCtfwBinAeW9DY_PkDZUqITYdlA/exec';
+
+    function startReading() {
+        const name = document.getElementById('studentName').value.trim();
+        const book = document.getElementById('bookTitle').value.trim();
+        if(!name || !book) return alert("정보를 입력해 주세요!");
+        document.getElementById('show-name').innerText = name;
+        document.getElementById('show-book').innerText = book;
+        document.getElementById('login-page').style.display = 'none';
+        document.getElementById('search-page').style.display = 'block';
+    }
+
+    async function askGPT() {
+        const query = document.getElementById('queryInput').value.trim();
+        const responseDiv = document.getElementById('ai-response');
+        const loading = document.getElementById('loading');
+        if(!query) return;
+
+        loading.style.display = 'block';
+        responseDiv.innerText = '답변을 기다리는 중...';
+        
+        const name = document.getElementById('show-name').innerText;
+        const book = document.getElementById('show-book').innerText;
+        const finalUrl = `${WEB_APP_URL}?name=${encodeURIComponent(name)}&book=${encodeURIComponent(book)}&query=${encodeURIComponent(query)}`;
+
+        try {
+            const response = await fetch(finalUrl);
+            const answer = await response.text();
+            responseDiv.innerHTML = answer.replace(/\n/g, '<br>');
+            document.getElementById('queryInput').value = '';
+        } catch (error) {
+            responseDiv.innerHTML = '오류 발생. 다시 시도해 주세요.';
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
